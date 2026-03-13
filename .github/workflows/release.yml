@@ -417,13 +417,13 @@ jobs:
           prerelease: ${{ steps.release-meta.outputs.prerelease == 'true' }}
           make_latest: ${{ steps.release-meta.outputs.make_latest }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout code for version bump
         if: inputs.release_production == true
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: Install Rust toolchain
