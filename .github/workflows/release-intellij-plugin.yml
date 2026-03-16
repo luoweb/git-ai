@@ -37,7 +37,7 @@ jobs:
       - name: Fetch Sources
         uses: actions/checkout@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
 
       # Set up the Java environment for the next steps
       - name: Setup Java
