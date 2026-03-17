@@ -1,5 +1,10 @@
 name: Release VS Code Extension
 
+env:
+  DOCKER_REGISTRY: registry.cn-hangzhou.aliyuncs.com
+  ALIYUN_USER: ${{ secrets.ALIYUN_USER }}
+  ALIYUN_TOKEN: ${{ secrets.ALIYUN_TOKEN }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -136,7 +141,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.CI_GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
@@ -152,3 +157,73 @@ jobs:
           git add package.json
           git commit -m "chore(vscode): bump version to $(node -p "require('./package.json').version")"
           git push
+
+
+  docker-build-push:
+    name: Build and push Docker image to Alibaba Cloud
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Download extension artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: vscode-extension
+          path: agent-support/vscode
+
+      - name: Debug - List downloaded Ubuntu files
+        run: ls -la agent-support/vscode
+        # run: ls -la dist/*
+        
+      - name: Create Dockerfile
+        run: |
+          cat > Dockerfile << 'EOF'
+          # 使用最小的基础镜像 scratch
+          FROM scratch
+          
+          # 创建目录结构
+          WORKDIR /app
+          
+          # 拷贝所有平台的构建产物
+          # COPY scan-erp-ubuntu-latest/scan-erp-ubuntu-latest /app/scan-erp-ubuntu-latest
+          # COPY scan-erp-macos-latest/scan-erp-macos-latest /app/scan-erp-macos-latest
+          # COPY scan-erp-macos-latest/scan-erp-macos-latest.app /app/scan-erp-macos-latest.app
+          # COPY scan-erp-windows-latest/scan-erp-windows-latest.exe /app/scan-erp-windows-latest.exe
+          # COPY agent-support/ /app/
+          EOF
+          
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Log into Alibaba Cloud registry
+        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.ALIYUN_USER }}
+          password: ${{ env.ALIYUN_TOKEN }}
+          
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/roweb/git-ai
+          tags: |
+            type=semver,pattern={{version}},value=${{ github.ref_name }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ github.ref_name }}
+            type=sha,prefix=,suffix=,format=short
+            type=raw,value=latest
+            type=raw,value=${{ matrix.os }}
+            
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # scratch镜像没有shell，需要使用特殊的构建参数
+          platform: linux/amd64
+          provenance: false
