@@ -26,7 +26,7 @@ jobs:
         if: runner.os != 'Windows'
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           python - <<'PY'
@@ -36,7 +36,7 @@ jobs:
           import re
           import urllib.request
 
-          token = os.environ.get("GITHUB_TOKEN", "")
+          token = os.environ.get("CI_GITHUB_TOKEN", "")
           url = "https://api.github.com/repos/git-ai-project/git-ai/releases?per_page=100"
           headers = {
               "Accept": "application/vnd.github+json",
@@ -96,7 +96,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
           $script = @'
@@ -106,7 +106,7 @@ jobs:
           import re
           import urllib.request
 
-          token = os.environ.get("GITHUB_TOKEN", "")
+          token = os.environ.get("CI_GITHUB_TOKEN", "")
           url = "https://api.github.com/repos/git-ai-project/git-ai/releases?per_page=100"
           headers = {
               "Accept": "application/vnd.github+json",

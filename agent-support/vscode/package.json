@@ -10,7 +10,7 @@
     "url": "https://github.com/git-ai-project/git-ai"
   },
   "engines": {
-    "vscode": ">=1.99.3",
+    "vscode": ">=1.90.0",
     "node": ">=20.18.1"
   },
   "categories": [
@@ -81,8 +81,8 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
-    "@types/node": "25.x",
-    "@types/vscode": "1.99.1",
+    "@types/node": "20.x",
+    "@types/vscode": "1.90.0",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
     "@vscode/test-cli": "^0.0.12",

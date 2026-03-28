@@ -57,7 +57,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -67,7 +67,7 @@ jobs:
       - name: Get release body
         id: release-body
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
           RELEASE_TAG: ${{ steps.config.outputs.release_tag }}
         run: |
           BODY=$(gh release view "$RELEASE_TAG" --json body --jq '.body')
@@ -145,7 +145,7 @@ jobs:
       - name: Update release notes
         if: steps.config.outputs.dry_run == 'false' && steps.commit-changelog.outputs.committed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
           CHANGELOG_ENTRY: ${{ steps.extract.outputs.entry }}
           RELEASE_TAG: ${{ steps.config.outputs.release_tag }}
         run: |
