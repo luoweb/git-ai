@@ -7,6 +7,7 @@
 use crate::authorship::authorship_log_serialization::{generate_session_id, generate_trace_id};
 use crate::config;
 use crate::daemon::telemetry_worker::DaemonTelemetryWorkerHandle;
+use crate::daemon::transcript_redaction::redact_json_secrets;
 use crate::metrics::{EventAttributes, MetricEvent, PosEncoded, SessionEventValues};
 use crate::transcripts::db::TranscriptsDatabase;
 use crate::transcripts::types::TranscriptError;
@@ -523,15 +524,9 @@ impl TranscriptWorker {
                                 .as_secs() as u32
                         }),
                     };
-                    let trace_id = match (&task.trace_id, &task.tool_use_id, &tid) {
-                        (Some(hook_trace_id), Some(hook_tuid), Some(event_tuid))
-                            if hook_tuid == event_tuid =>
-                        {
-                            hook_trace_id.clone()
-                        }
-                        _ => generate_trace_id(),
-                    };
+                    let trace_id = generate_trace_id();
                     let attrs_sparse = base_attrs.clone().trace_id(trace_id).to_sparse();
+                    let raw_event = redact_json_secrets(raw_event);
                     MetricEvent::from_values_with_timestamp(
                         SessionEventValues::with_ids(raw_event, eid, pid, tid),
                         attrs_sparse,
